@@ -104,8 +104,7 @@ const chickenWingsItems = [
   },
 ];
 
-const loadedFriesItems = [
-  {
+const loadedFriesItems = [  {
     name: "Beef'd Up",
     description:
       "Fries, smashed beef, gherkins, beef bacon, stacked sauce, caramelised onions.",
@@ -133,8 +132,7 @@ const loadedFriesItems = [
     },
   },
   {
-    name: "Loaded Chick",
-    description:
+    name: "Loaded Chick",    description:
       "House Fries Drizzled in House Sauce, Topped With our Chicken fillet.",
     price: "£8.49",
     image: "https://placehold.co/600x400.png",
@@ -161,16 +159,14 @@ const loadedFriesItems = [
 ];
 
 const friesItems = [
-  {
-    name: "Plain Fries",
+  {    name: "Plain Fries",
     description: "Classic crispy plain fries.",
     price: "£2.95",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
   {
-    name: "Fire Fries",
-    description: "Crispy Fries tossed in Bold Cajun Seasoning.",
+    name: "Fire Fries",    description: "Crispy Fries tossed in Bold Cajun Seasoning.",
     price: "£3.95",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
@@ -178,64 +174,56 @@ const friesItems = [
 ];
 
 const drinksItems = [
-  {
-    name: "ICE Cola",
+  {    name: "ICE Cola",
     description:
       "The original and best, a timeless classic that needs no introduction. Perfect for any meal, any time.",
     price: "£1.75",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
-  {
-    name: "ICE Max",
+  {    name: "ICE Max",
     description:
       "All the great taste of classic cola, but with zero sugar. Maximum flavour, zero compromise.",
     price: "£1.75",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
-  {
-    name: "ICE Lemon",
+  {    name: "ICE Lemon",
     description:
       "A zesty and refreshing lemon-lime soda that's crisp, clean, and caffeine-free. Quench your thirst with its tangy sparkle.",
     price: "£1.75",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
-  {
-    name: "ICE Mango",
+  {    name: "ICE Mango",
     description:
       "Escape to the tropics with this sweet and juicy mango flavoured drink. A vibrant taste of sunshine in every sip.",
     price: "£1.75",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
-  {
-    name: "ICE Guava",
+  {    name: "ICE Guava",
     description:
       "An exotic and fragrant guava drink that transports you to paradise. Sweet, floral, and utterly refreshing.",
     price: "£1.75",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
-  {
-    name: "ICE Strawberry",
+  {    name: "ICE Strawberry",
     description:
       "Bursting with the sweet taste of ripe strawberries. A fruity delight that's both refreshing and satisfying.",
     price: "£1.75",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
-  {
-    name: "ICE Blu",
+  {    name: "ICE Blu",
     description:
       "A vibrant and electrifying blue raspberry flavour. Bold, tangy, and undeniably fun – a real treat for your taste buds.",
     price: "£1.75",
     image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
-  {
-    name: "ICE Orange",
+  {    name: "ICE Orange",
     description:
       "Bright, bubbly, and packed with sunny orange flavour. A classic fizzy drink that's always a crowd-pleaser.",
     price: "£1.75",
@@ -315,8 +303,7 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
     <div className="w-full flex flex-col items-center mt-8">
       {showPopup && currentItem && (
         <div className="fixed inset-0 bg-gray-500/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-2xl font-bold mb-2">{currentItem.name}</h2>
+          <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-lg w-96">            <h2 className="text-2xl font-bold mb-2">{currentItem.name}</h2>
             <p className="text-sm text-gray-500 mb-4">
               Customize your burger. Please select your fries option to continue.
             </p>
@@ -328,21 +315,6 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
             <p className="text-sm text-gray-500 mb-4">
               {currentItem.description}
             </p>
-
-            {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
-              currentItem.name
-            ) && (
-              <div className="mb-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={extraPatty}
-                    onChange={(e) => setExtraPatty(e.target.checked)}
-                  />
-                  <span>Add Extra Patty (+£2.00)</span>
-                </label>
-              </div>
-            )}
 
             <h3 className="text-lg font-semibold mb-2">
               Choose Your Fries:
@@ -369,6 +341,21 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
                 Fire Fries (+£2.00)
               </label>
             </div>
+
+            {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
+              currentItem.name
+            ) && (
+              <div className="mb-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={extraPatty}
+                    onChange={(e) => setExtraPatty(e.target.checked)}
+                  />
+                  <span>Add Extra Patty (+£2.00)</span>
+                </label>
+              </div>
+            )}
             <div className="flex justify-between items-center font-semibold text-lg mb-4">
               <span>Total:</span>
               <span>
