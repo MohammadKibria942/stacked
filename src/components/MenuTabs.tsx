@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Settings2 } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { BurgerPopup } from "./BurgerPopup";
+import { ChickenWingsPopup } from "./ChickenWingsPopup";
+import { LoadedChickPopup } from "./LoadedChickPopup";
 
 const tabs = [
   "Burgers",
@@ -260,6 +263,7 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
   const [selectedFries, setSelectedFries] = useState("");
   const [extraPatty, setExtraPatty] = useState(false);
   const [portionSize, setPortionSize] = useState("6pcs");
+  const [selectedLoadedChickFlavour, setSelectedLoadedChickFlavour] = useState("Plain");
   const [currentItem, setCurrentItem] = useState<
     { name: string; description: string; price: string; image: string } | null
   >(null);
@@ -272,11 +276,14 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
     const isBurger = ["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(item.name);
     const isChicken = chickenItems.some(chicken => chicken.name === item.name);
     const isWings = chickenWingsItems.some(wing => wing.name === item.name);
+    const isLoadedChick = item.name === "Loaded Chick";
 
-    if (isBurger || isChicken || isWings) {
+    if (isBurger || isChicken || isWings || isLoadedChick) {
       setCurrentItem(item);
       setSelectedFries("");
       setExtraPatty(false);
+      setPortionSize("6pcs");
+      setSelectedLoadedChickFlavour("Plain");
       setShowPopup(true);
     } else {
       onAddToCart(item);
@@ -325,183 +332,85 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
           >
-            <motion.div
-              className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-lg w-96"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-            >
-              <h2 className="text-2xl font-bold mb-2">{currentItem.name}</h2>
-              <p className="text-sm text-gray-500 mb-4">
-                {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(currentItem.name)
-                  ? "Customize your burger. Please select your fries option to continue."
-                  : chickenWingsItems.some(wing => wing.name === currentItem.name)
-                  ? "Customize your wings. Choose your portion size and optional fries."
-                  : "Please select your fries option to continue."}
-              </p>
-              <img
-                src={currentItem.image}
-                alt={currentItem.name}
-                className="w-full h-40 object-cover rounded mb-4"
-              />
-              <p className="text-sm text-gray-500 mb-4">
-                {currentItem.description}
-              </p>
-
-              {chickenWingsItems.some(wing => wing.name === currentItem.name) && (
-                <>
-                  <h3 className="text-lg font-semibold mb-2">
-                    Choose Your Portion:
-                  </h3>
+            {(() => {
+              if (["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(currentItem.name)) {
+                return (
+                  <BurgerPopup
+                    item={currentItem}
+                    extraPatty={extraPatty}
+                    setExtraPatty={setExtraPatty}
+                    selectedFries={selectedFries}
+                    setSelectedFries={setSelectedFries}
+                    onCancel={() => setShowPopup(false)}
+                    onConfirm={handleConfirmAddToCart}
+                  />
+                );
+              }
+              if (chickenWingsItems.some(wing => wing.name === currentItem.name)) {
+                return (
+                  <ChickenWingsPopup
+                    item={currentItem}
+                    portionSize={portionSize}
+                    setPortionSize={setPortionSize}
+                    selectedFries={selectedFries}
+                    setSelectedFries={setSelectedFries}
+                    onCancel={() => setShowPopup(false)}
+                    onConfirm={handleConfirmAddToCart}
+                  />
+                );
+              }
+              if (currentItem.name === "Loaded Chick") {
+                return (
+                  <LoadedChickPopup
+                    item={currentItem}
+                    selectedFlavour={selectedLoadedChickFlavour}
+                    setSelectedFlavour={setSelectedLoadedChickFlavour}
+                    onCancel={() => setShowPopup(false)}
+                    onConfirm={handleConfirmAddToCart}
+                  />
+                );
+              }
+              // fallback for chicken burgers
+              return (
+                <motion.div
+                  className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-lg w-96"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                >
+                  <h2 className="text-2xl font-bold mb-2">{currentItem.name}</h2>
+                  <p className="text-sm text-gray-500 mb-4">Please select your fries option to continue.</p>
+                  <img src={currentItem.image} alt={currentItem.name} className="w-full h-40 object-cover rounded mb-4" />
+                  <p className="text-sm text-gray-500 mb-4">{currentItem.description}</p>
+                  <h3 className="text-lg font-semibold mb-2">Choose Your Fries:</h3>
                   <div className="flex flex-col gap-2 mb-4">
                     <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="portionSize"
-                        value="6pcs"
-                        checked={portionSize === "6pcs"}
-                        onChange={(e) => setPortionSize(e.target.value)}
-                      />
-                      6 Pieces (Standard)
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="portionSize"
-                        value="10pcs"
-                        checked={portionSize === "10pcs"}
-                        onChange={(e) => setPortionSize(e.target.value)}
-                      />
-                      10 Pieces (+£3.00)
-                    </label>
-                  </div>
-                </>
-              )}
-
-              <h3 className="text-lg font-semibold mb-2">
-                {chickenWingsItems.some(wing => wing.name === currentItem.name)
-                  ? "Add Fries? (Optional):"
-                  : "Choose Your Fries:"}
-              </h3>
-              <div className="flex flex-col gap-2 mb-4">
-                {chickenWingsItems.some(wing => wing.name === currentItem.name) ? (
-                  <>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="fries"
-                        value="House Fries"
-                        checked={selectedFries === "House Fries"}
-                        onChange={() => setSelectedFries("House Fries")}
-                      />
-                      House Fries (+£1.95)
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="fries"
-                        value="Cajun Fries"
-                        checked={selectedFries === "Cajun Fries"}
-                        onChange={() => setSelectedFries("Cajun Fries")}
-                      />
-                      Cajun Fries (+£2.95)
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="fries"
-                        value=""
-                        checked={selectedFries === ""}
-                        onChange={() => setSelectedFries("")}
-                      />
-                      No Fries
-                    </label>
-                  </>
-                ) : (
-                  <>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="fries"
-                        value="House Fries"
-                        checked={selectedFries === "House Fries"}
-                        onChange={() => setSelectedFries("House Fries")}
-                      />
+                      <input type="radio" name="fries" value="House Fries" checked={selectedFries === "House Fries"} onChange={() => setSelectedFries("House Fries")} />
                       House Fries (Included)
                     </label>
                     <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="fries"
-                        value="Cajun Fries"
-                        checked={selectedFries === "Cajun Fries"}
-                        onChange={() => setSelectedFries("Cajun Fries")}
-                      />
+                      <input type="radio" name="fries" value="Cajun Fries" checked={selectedFries === "Cajun Fries"} onChange={() => setSelectedFries("Cajun Fries")} />
                       Cajun Fries (+£0.50)
                     </label>
-                  </>
-                )}
-              </div>
-              {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
-                currentItem.name
-              ) && (
-                <>
-                  <h4 className="text-lg font-semibold mb-1">Protein</h4>
-                  <div className="mb-4">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={extraPatty}
-                        onChange={(e) => setExtraPatty(e.target.checked)}
-                      />
-                      <span>Add Extra Patty (+£2.00)</span>
-                    </label>
                   </div>
-                </>
-              )}
-              <div className="flex justify-between items-center font-semibold text-lg mb-4">
-                <span>Total:</span>
-                <span>
-                  £{(
-                    parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
-                    (extraPatty ? 2.0 : 0) +
-                    (chickenWingsItems.some(wing => wing.name === currentItem.name)
-                      ? selectedFries === "House Fries"
-                        ? 1.95
-                        : selectedFries === "Cajun Fries"
-                        ? 2.95
-                        : 0
-                      : selectedFries === "Plain Fries"
-                      ? 1.95
-                      : selectedFries === "Cajun Fries"
-                      ? 0.5
-                      : 0)
-                  ).toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
-                  onClick={() => setShowPopup(false)}
-                >
-                  Cancel
-                </button>
-                <button                className={`bg-primary text-primary-foreground px-4 py-2 rounded transition ${
-                  (chickenWingsItems.some(wing => wing.name === currentItem?.name) && !selectedFries)
-                    ? "hover:bg-primary/90"
-                    : !selectedFries
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-primary/90"
-                }`}
-                onClick={handleConfirmAddToCart}
-                disabled={!chickenWingsItems.some(wing => wing.name === currentItem?.name) && !selectedFries}
-              >
-                Add to Cart
-              </button>
-            </div>
+                  <div className="flex justify-between items-center font-semibold text-lg mb-4">
+                    <span>Total:</span>
+                    <span>
+                      £{(
+                        parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
+                        (selectedFries === "Cajun Fries" ? 0.5 : 0)
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600" onClick={() => setShowPopup(false)}>Cancel</button>
+                    <button className={`bg-primary text-primary-foreground px-4 py-2 rounded transition ${!selectedFries ? "opacity-50 cursor-not-allowed" : "hover:bg-primary/90"}`} onClick={handleConfirmAddToCart} disabled={!selectedFries}>Add to Cart</button>
+                  </div>
+                </motion.div>
+              );
+            })()}
           </motion.div>
-        </motion.div>
         )}
       </AnimatePresence>
       <div className="flex gap-2 bg-neutral-100 dark:bg-neutral-900 rounded-lg p-2 mb-8">
