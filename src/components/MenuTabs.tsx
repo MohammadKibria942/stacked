@@ -384,43 +384,51 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
                   ? "Add Fries? (Optional):"
                   : "Choose Your Fries:"}
               </h3>
-              <div className="flex flex-col gap-2 mb-4">              <label className="flex items-center gap-2">                <input
-                  type="radio"
-                  name="fries"
-                  value="Plain Fries"
-                  checked={selectedFries === "Plain Fries"}
-                  onChange={() => setSelectedFries("Plain Fries")}
-                />
-                Plain Fries (+£1.95)
-              </label><label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="fries"
-                  value="Cajun Fries"
-                  checked={selectedFries === "Cajun Fries"}
-                  onChange={() => setSelectedFries("Cajun Fries")}
-                />
-                Cajun Fries (+£2.95)
-              </label>
-            </div>            {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
-              currentItem.name
-            ) && (
-              <div className="mb-4">
+              <div className="flex flex-col gap-2 mb-4">
                 <label className="flex items-center gap-2">
                   <input
-                    type="checkbox"
-                    checked={extraPatty}
-                    onChange={(e) => setExtraPatty(e.target.checked)}
+                    type="radio"
+                    name="fries"
+                    value="House Fries"
+                    checked={selectedFries === "House Fries"}
+                    onChange={() => setSelectedFries("House Fries")}
                   />
-                  <span>Add Extra Patty (+£2.00)</span>
+                  House Fries (Included)
                 </label>
-              </div>            )}
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="fries"
+                    value="Cajun Fries"
+                    checked={selectedFries === "Cajun Fries"}
+                    onChange={() => setSelectedFries("Cajun Fries")}
+                  />
+                  Cajun Fries (+£0.50)
+                </label>
+              </div>
+              {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
+                currentItem.name
+              ) && (
+                <>
+                  <h4 className="text-lg font-semibold mb-1">Protein</h4>
+                  <div className="mb-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={extraPatty}
+                        onChange={(e) => setExtraPatty(e.target.checked)}
+                      />
+                      <span>Add Extra Patty (+£2.00)</span>
+                    </label>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between items-center font-semibold text-lg mb-4">
                 <span>Total:</span>
                 <span>
                   £{(                  parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
                   (extraPatty ? 2.0 : 0) +
-                  (selectedFries === "Plain Fries" ? 1.95 : selectedFries === "Cajun Fries" ? 2.95 : 0)
+                  (selectedFries === "Plain Fries" ? 1.95 : selectedFries === "Cajun Fries" ? 0.5 : 0)
                 ).toFixed(2)}
                 </span>
               </div>
