@@ -343,30 +343,58 @@ export function MenuTabs({ onAddToCart, onRemoveItemByName }: MenuTabsProps) {
 
   const handleConfirmAddToCart = () => {
     if (currentItem) {
-      const isWings = chickenWingsItems.some(wing => wing.name === currentItem.name);
-      const isLoadedChick = currentItem.name === "Loaded Chick";
-      const extraPattyCost =
-        extraPatty && ["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
-          currentItem.name
-        )
-          ? 2.0
-          : 0;
-      const extraFriesCost = selectedFries === "Cajun Fries" ? 2.95 : selectedFries === "Plain Fries" ? 1.95 : 0;
-      const extraPortionCost = isWings && portionSize === "10pcs" ? 3.0 : 0;
+      let finalName = currentItem.name;
+      let basePrice = parseFloat(currentItem.price.replace(/[^0-9.-]+/g, ""));
+      let additionalCost = 0;
+
+      const isBurgerItem = burgerItems.some(b => b.name === currentItem.name);
+      const isWingsItem = chickenWingsItems.some(w => w.name === currentItem.name);
+      const isLoadedChickItem = currentItem.name === "Loaded Chick";
+      // Could also check for generic chicken item if needed for specific pricing
+
+      if (isBurgerItem) {
+        if (extraPatty) {
+          finalName += " with Extra Patty";
+          additionalCost += 2.0;
+        }
+        // For burgers, House Fries are included (no extra cost), Cajun Fries add cost
+        if (selectedFries === "Cajun Fries") {
+          finalName += " with Cajun Fries";
+          additionalCost += 0.50; // Burger specific Cajun Fries cost
+        } else if (selectedFries === "House Fries") {
+          finalName += " with House Fries";
+          // No additional cost for House Fries with burger
+        }
+      } else if (isWingsItem) {
+        finalName += ` (${portionSize})`;
+        if (portionSize === "10pcs") {
+          additionalCost += 3.0;
+        }
+        if (selectedFries === "House Fries") {
+          finalName += ` with House Fries`;
+          additionalCost += 1.95; // Wings specific House Fries cost
+        } else if (selectedFries === "Cajun Fries") {
+          finalName += ` with Cajun Fries`;
+          additionalCost += 2.95; // Wings specific Cajun Fries cost
+        }
+      } else if (isLoadedChickItem) {
+        finalName += ` (${selectedLoadedChickFlavour})`;
+        // No additional cost for flavour itself for Loaded Chick based on current setup
+      } else { // Fallback for other customizable items (e.g., generic chicken burgers)
+        // Assuming generic chicken burgers follow similar fries pricing to standalone burgers
+        if (selectedFries === "Cajun Fries") {
+          finalName += " with Cajun Fries";
+          additionalCost += 0.50;
+        } else if (selectedFries === "House Fries") {
+          finalName += " with House Fries";
+          // No additional cost for House Fries
+        }
+      }
 
       const updatedItem = {
         ...currentItem,
-        name: `${currentItem.name}` +
-          (isLoadedChick ? ` (${selectedLoadedChickFlavour})` : "") +
-          (extraPatty ? " with Extra Patty" : "") +
-          (isWings ? ` (${portionSize})` : "") +
-          (selectedFries ? ` with ${selectedFries}` : ""),
-        price: `£${(
-          parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
-          extraPattyCost +
-          extraFriesCost +
-          extraPortionCost
-        ).toFixed(2)}`,
+        name: finalName,
+        price: `£${(basePrice + additionalCost).toFixed(2)}`,
       };
       onAddToCart(updatedItem);
       setShowPopup(false);

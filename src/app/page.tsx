@@ -1,7 +1,5 @@
 'use client';
-
 import { useState } from "react";
-import Image from "next/image";
 import { Address } from "../components/Address";
 import { OpeningHours } from "../components/OpeningHours";
 import { Header } from "../components/Header";
@@ -23,18 +21,9 @@ function getTodayHours() {
 	return weekHours[today];
 }
 
-const tabs = [
-	"Home",
-	"Burgers",
-	"Chicken Wings",
-	"Loaded Fries",
-	"Fries",
-	"Drinks",
-];
-
 export default function Home() {
 	const today = getTodayHours();
-	const [activeTab, setActiveTab] = useState(tabs[0]);
+	const [activeTab, setActiveTab] = useState("Burgers"); // Initialize with the default tab name
 	const [cartItems, setCartItems] = useState<{ name: string; description: string; price: string; image: string; quantity: number }[]>([]);
 
 	const handleAddToCart = (item: { name: string; description: string; price: string; image: string }) => {
@@ -84,7 +73,7 @@ export default function Home() {
 			{/* Address & Opening Hours */}
 			<div className="flex flex-col justify-center items-start gap-2 py-8 px-4 max-w-5xl mx-auto w-full md:items-start md:pl-0 md:w-full">
 				<Address />
-				<OpeningHours />
+				<OpeningHours todayHoursString={today.hours} allWeekHours={weekHours} />
 			</div>
 
 			{/* Tabs Section */}
