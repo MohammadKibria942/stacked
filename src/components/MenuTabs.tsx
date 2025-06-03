@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Settings2 } from "lucide-react";
+import { Settings2, Plus, Minus } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { BurgerPopup } from "./BurgerPopup";
@@ -301,11 +301,16 @@ interface MenuTabsProps {
     price: string;
     image: string;
   }) => void;
+  onRemoveItemByName?: (itemName: string) => void;
 }
 
-export function MenuTabs({ onAddToCart }: MenuTabsProps) {
+export function MenuTabs({ onAddToCart, onRemoveItemByName }: MenuTabsProps) {
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [showPopup, setShowPopup] = useState(false);
+  const [loadedFriesQuantities, setLoadedFriesQuantities] = useState<{ [itemName: string]: number }>({});
+  const [friesQuantities, setFriesQuantities] = useState<{ [itemName: string]: number }>({});
+  const [drinkQuantities, setDrinkQuantities] = useState<{ [itemName: string]: number }>({});
+  const [sauceQuantities, setSauceQuantities] = useState<{ [itemName: string]: number }>({});
   const [selectedFries, setSelectedFries] = useState("");
   const [extraPatty, setExtraPatty] = useState(false);
   const [portionSize, setPortionSize] = useState("6pcs");
@@ -460,22 +465,27 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="flex gap-2 bg-neutral-100 dark:bg-neutral-900 rounded-lg p-2 mb-8">
+      <div className="flex flex-wrap justify-center gap-2 bg-neutral-100 dark:bg-neutral-900 rounded-lg p-2 mb-8">
         {tabs.map((tab) => (
           <button
             key={tab}
-            className={`px-4 py-2 rounded font-medium transition-colors text-sm ${
+            className={`px-4 py-2 rounded font-medium transition-colors text-sm whitespace-nowrap ${
               activeTab === tab
                 ? "bg-primary text-primary-foreground shadow"
                 : "bg-transparent text-foreground hover:bg-neutral-200 dark:hover:bg-neutral-800"
             }`}
             onClick={() => setActiveTab(tab)}
+            aria-controls={`panel-${tab}`}
+            id={`tab-${tab}`}
+            role="tab"
+            aria-selected={activeTab === tab}
           >
             {tab}
           </button>
         ))}
       </div>
-      {activeTab === "Burgers" && (
+      <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`} className="w-full flex justify-center">
+        {activeTab === "Burgers" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
           {burgerItems.map((item) => (
             <div key={item.name} className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full">
@@ -503,7 +513,7 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
           ))}
         </div>
       )}
-      {activeTab === "Chicken" && (
+        {activeTab === "Chicken" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
           {chickenItems.map((item) => (
             <div
@@ -531,7 +541,7 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
           ))}
         </div>
       )}
-      {activeTab === "Chicken Wings" && (
+        {activeTab === "Chicken Wings" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
           {chickenWingsItems.map((item) => (
             <div
@@ -559,117 +569,253 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
           ))}
         </div>
       )}
-      {activeTab === "Loaded Fries" && (
+        {activeTab === "Loaded Fries" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
-          {loadedFriesItems.map((item) => (
-            <div
-              key={item.name}
-              className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="rounded mb-4 object-cover w-full h-48"
-              />
-              <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-              <p className="text-base text-center mb-2">{item.description}</p>
-              <span className="font-bold text-lg mb-4">{item.price}</span>
-              <div className="mt-auto w-full flex justify-center">
-                <button
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
-                  onClick={() => handleAddToCart(item)}
-                >
-                  <Settings2 size={16} />
-                  {item.button.text}
-                </button>
+          {loadedFriesItems.map((item) => {
+            const quantity = loadedFriesQuantities[item.name] || 0;
+            const isCustomizable = item.name === "Loaded Chick"; // Or any other logic to determine customizability
+
+            return (
+              <div key={item.name} className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="rounded mb-4 object-cover w-full h-48"
+                />
+                <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+                <p className="text-base text-center mb-2">{item.description}</p>
+                <span className="font-bold text-lg mb-4">{item.price}</span>
+                <div className="mt-auto w-full flex justify-center">
+                  {isCustomizable ? (
+                    <button
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
+                      onClick={() => handleAddToCart(item)} // This will open the popup
+                    >
+                      <Settings2 size={16} />
+                      {item.button.text}
+                    </button>
+                  ) : quantity === 0 ? (
+                    <button
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
+                      onClick={() => {
+                        onAddToCart(item);
+                        setLoadedFriesQuantities(prev => ({ ...prev, [item.name]: (prev[item.name] || 0) + 1 }));
+                      }}
+                    >
+                      {item.button.text}
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3 w-full">
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          const newQuantity = Math.max(0, quantity - 1);
+                          setLoadedFriesQuantities(prev => ({ ...prev, [item.name]: newQuantity }));
+                          if (newQuantity < quantity && onRemoveItemByName) {
+                            onRemoveItemByName(item.name);
+                          }
+                        }}
+                        aria-label={`Decrease quantity of ${item.name}`}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="text-lg font-medium w-8 text-center">{quantity}</span>
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          onAddToCart(item);
+                          setLoadedFriesQuantities(prev => ({ ...prev, [item.name]: quantity + 1 }));
+                        }}
+                        aria-label={`Increase quantity of ${item.name}`}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-      {activeTab === "Fries" && (
+        {activeTab === "Fries" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
-          {friesItems.map((item) => (
-            <div
-              key={item.name}
-              className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="rounded mb-4 object-cover w-full h-48"
-              />
-              <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-              <p className="text-base text-center mb-2">{item.description}</p>
-              <span className="font-bold text-lg mb-4">{item.price}</span>
-              <div className="mt-auto w-full flex justify-center">
-                <button
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
-                  onClick={() => handleAddToCart(item)}
-                >
-                  <Settings2 size={16} />
-                  {item.button.text}
-                </button>
+          {friesItems.map((item) => {
+            const quantity = friesQuantities[item.name] || 0;
+            return (
+              <div key={item.name} className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="rounded mb-4 object-cover w-full h-48"
+                />
+                <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+                <p className="text-base text-center mb-2">{item.description}</p>
+                <span className="font-bold text-lg mb-4">{item.price}</span>
+                <div className="mt-auto w-full flex justify-center">
+                  {quantity === 0 ? (
+                    <button
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
+                      onClick={() => {
+                        onAddToCart(item);
+                        setFriesQuantities(prev => ({ ...prev, [item.name]: (prev[item.name] || 0) + 1 }));
+                      }}
+                    >
+                      {item.button.text}
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3 w-full">
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          const newQuantity = Math.max(0, quantity - 1);
+                          setFriesQuantities(prev => ({ ...prev, [item.name]: newQuantity }));
+                          if (newQuantity < quantity && onRemoveItemByName) {
+                            onRemoveItemByName(item.name);
+                          }
+                        }}
+                        aria-label={`Decrease quantity of ${item.name}`}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="text-lg font-medium w-8 text-center">{quantity}</span>
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          onAddToCart(item);
+                          setFriesQuantities(prev => ({ ...prev, [item.name]: quantity + 1 }));
+                        }}
+                        aria-label={`Increase quantity of ${item.name}`}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-      {activeTab === "Drinks" && (
+        {activeTab === "Drinks" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
-          {drinksItems.map((item) => (
-            <div
-              key={item.name}
-              className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="rounded mb-4 object-cover w-full h-48"
-              />
-              <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-              <p className="text-base text-center mb-2">{item.description}</p>
-              <span className="font-bold text-lg mb-4">{item.price}</span>
-              <div className="mt-auto w-full flex justify-center">
-                <button
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
-                  onClick={() => handleAddToCart(item)}
-                >
-                  <Settings2 size={16} />
-                  {item.button.text}
-                </button>
+          {drinksItems.map((item) => {
+            const quantity = drinkQuantities[item.name] || 0;
+            return (
+              <div key={item.name} className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="rounded mb-4 object-cover w-full h-48"
+                />
+                <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+                <p className="text-base text-center mb-2">{item.description}</p>
+                <span className="font-bold text-lg mb-4">{item.price}</span>
+                <div className="mt-auto w-full flex justify-center">
+                  {quantity === 0 ? (
+                    <button
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
+                      onClick={() => {
+                        onAddToCart(item); // Use the prop directly for non-customizable items
+                        setDrinkQuantities(prev => ({ ...prev, [item.name]: (prev[item.name] || 0) + 1 }));
+                      }}
+                    >
+                      {item.button.text}
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3 w-full">
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          const newQuantity = Math.max(0, quantity - 1);
+                          setDrinkQuantities(prev => ({ ...prev, [item.name]: newQuantity }));
+                          if (newQuantity < quantity && onRemoveItemByName) {
+                            onRemoveItemByName(item.name);
+                          }
+                        }}
+                        aria-label={`Decrease quantity of ${item.name}`}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="text-lg font-medium w-8 text-center">{quantity}</span>
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          onAddToCart(item); // Use the prop directly
+                          setDrinkQuantities(prev => ({ ...prev, [item.name]: quantity + 1 }));
+                        }}
+                        aria-label={`Increase quantity of ${item.name}`}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-      {activeTab === "Sauces" && (
+        {activeTab === "Sauces" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
-          {saucesItems.map((item) => (
-            <div
-              key={item.name}
-              className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full"
-            >
-              <img
-                src={item.image}
-                alt={item.name}
-                className="rounded mb-4 object-cover w-full h-48"
-              />
-              <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
-              <p className="text-base text-center mb-2">{item.description}</p>
-              <span className="font-bold text-lg mb-4">{item.price}</span>
-              <div className="mt-auto w-full flex justify-center">
-                <button
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
-                  onClick={() => handleAddToCart(item)}
-                >
-                  Add to Cart
-                </button>
+          {saucesItems.map((item) => {
+            const quantity = sauceQuantities[item.name] || 0;
+            return (
+              <div key={item.name} className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full">
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="rounded mb-4 object-cover w-full h-48"
+                />
+                <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+                <p className="text-base text-center mb-2">{item.description}</p>
+                <span className="font-bold text-lg mb-4">{item.price}</span>
+                <div className="mt-auto w-full flex justify-center">
+                  {quantity === 0 ? (
+                    <button
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
+                      onClick={() => {
+                        onAddToCart(item);
+                        setSauceQuantities(prev => ({ ...prev, [item.name]: (prev[item.name] || 0) + 1 }));
+                      }}
+                    >
+                      Add to Cart
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-3 w-full">
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          const newQuantity = Math.max(0, quantity - 1);
+                          setSauceQuantities(prev => ({ ...prev, [item.name]: newQuantity }));
+                          if (newQuantity < quantity && onRemoveItemByName) {
+                            onRemoveItemByName(item.name);
+                          }
+                        }}
+                        aria-label={`Decrease quantity of ${item.name}`}
+                      >
+                        <Minus size={16} />
+                      </button>
+                      <span className="text-lg font-medium w-8 text-center">{quantity}</span>
+                      <button
+                        className="bg-gray-200 dark:bg-gray-700 text-foreground p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        onClick={() => {
+                          onAddToCart(item);
+                          setSauceQuantities(prev => ({ ...prev, [item.name]: quantity + 1 }));
+                        }}
+                        aria-label={`Increase quantity of ${item.name}`}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+      </div>
     </div>
   );
 }

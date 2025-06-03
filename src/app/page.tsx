@@ -35,10 +35,47 @@ const tabs = [
 export default function Home() {
 	const today = getTodayHours();
 	const [activeTab, setActiveTab] = useState(tabs[0]);
-	const [cartItems, setCartItems] = useState<{ name: string; description: string; price: string; image: string }[]>([]);
+	const [cartItems, setCartItems] = useState<{ name: string; description: string; price: string; image: string; quantity: number }[]>([]);
 
 	const handleAddToCart = (item: { name: string; description: string; price: string; image: string }) => {
-		setCartItems((prevItems) => [...prevItems, item]);
+		setCartItems((prevItems) => {
+			const existingItemIndex = prevItems.findIndex(
+				(cartItem) => cartItem.name === item.name
+			);
+			if (existingItemIndex > -1) {
+				// Item already exists, increase quantity
+				const updatedItems = [...prevItems];
+				updatedItems[existingItemIndex] = {
+					...updatedItems[existingItemIndex],
+					quantity: updatedItems[existingItemIndex].quantity + 1,
+				};
+				return updatedItems;
+			} else {
+				// New item, add it to the cart with quantity 1
+				return [...prevItems, { ...item, quantity: 1 }];
+			}
+		});
+	};
+
+	const handleRemoveItemByName = (itemName: string) => {
+		setCartItems((prevItems) => {
+			const existingItemIndex = prevItems.findIndex(cartItem => cartItem.name === itemName);
+			if (existingItemIndex > -1) {
+				const updatedItems = [...prevItems];
+				if (updatedItems[existingItemIndex].quantity > 1) {
+					// Decrease quantity
+					updatedItems[existingItemIndex] = {
+						...updatedItems[existingItemIndex],
+						quantity: updatedItems[existingItemIndex].quantity - 1,
+					};
+				} else {
+					// Remove item if quantity is 1
+					updatedItems.splice(existingItemIndex, 1);
+				}
+				return updatedItems;
+			}
+			return prevItems; // Return previous items if not found
+		});
 	};
 
 	return (
@@ -51,7 +88,7 @@ export default function Home() {
 			</div>
 
 			{/* Tabs Section */}
-			<MenuTabs onAddToCart={handleAddToCart} />
+			<MenuTabs onAddToCart={handleAddToCart} onRemoveItemByName={handleRemoveItemByName} />
 			<div className="h-16" />
 
 			<Footer />
