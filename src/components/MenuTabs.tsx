@@ -246,28 +246,23 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedFries, setSelectedFries] = useState("");
   const [extraPatty, setExtraPatty] = useState(false);
+  const [portionSize, setPortionSize] = useState("6pcs");
   const [currentItem, setCurrentItem] = useState<
     { name: string; description: string; price: string; image: string } | null
-  >(null);
-
-  const handleAddToCart = (item: {
+  >(null);  const handleAddToCart = (item: {
     name: string;
     description: string;
     price: string;
     image: string;
   }) => {
-    if (
-      item.name === "Flam'in Smash" ||
-      item.name === "FULL HOUSE" ||
-      item.name === "The STACKED"
-    ) {
+    const isBurger = ["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(item.name);
+    const isChicken = chickenItems.some(chicken => chicken.name === item.name);
+    const isWings = chickenWingsItems.some(wing => wing.name === item.name);
+
+    if (isBurger || isChicken || isWings) {
       setCurrentItem(item);
       setSelectedFries("");
       setExtraPatty(false);
-      setShowPopup(true);
-    } else if (item.name === "The Chicken") {
-      setCurrentItem(item);
-      setSelectedFries("");
       setShowPopup(true);
     } else {
       onAddToCart(item);
@@ -275,23 +270,28 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
   };
 
   const handleConfirmAddToCart = () => {
-    if (currentItem && selectedFries) {
+    if (currentItem) {
+      const isWings = chickenWingsItems.some(wing => wing.name === currentItem.name);
       const extraPattyCost =
         extraPatty && ["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
           currentItem.name
         )
           ? 2.0
-          : 0;
-      const extraFriesCost = selectedFries === "Fire Fries" ? 2.0 : 0;
+          : 0;      const extraFriesCost = selectedFries === "Cajun Fries" ? 2.95 : selectedFries === "Plain Fries" ? 1.95 : 0;
+      const extraPortionCost = isWings && portionSize === "10pcs" ? 3.0 : 0;
+      
       const updatedItem = {
         ...currentItem,
         name: `${currentItem.name}${
           extraPatty ? " with Extra Patty" : ""
-        } with ${selectedFries}`,
+        }${
+          isWings ? ` (${portionSize})` : ""
+        }${selectedFries ? ` with ${selectedFries}` : ""}`,
         price: `£${(
           parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
           extraPattyCost +
-          extraFriesCost
+          extraFriesCost +
+          extraPortionCost
         ).toFixed(2)}`,
       };
       onAddToCart(updatedItem);
@@ -303,9 +303,12 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
     <div className="w-full flex flex-col items-center mt-8">
       {showPopup && currentItem && (
         <div className="fixed inset-0 bg-gray-500/50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-lg w-96">            <h2 className="text-2xl font-bold mb-2">{currentItem.name}</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Customize your burger. Please select your fries option to continue.
+          <div className="bg-white dark:bg-neutral-800 p-6 rounded-lg shadow-lg w-96">            <h2 className="text-2xl font-bold mb-2">{currentItem.name}</h2>            <p className="text-sm text-gray-500 mb-4">
+              {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(currentItem.name)
+                ? "Customize your burger. Please select your fries option to continue."
+                : chickenWingsItems.some(wing => wing.name === currentItem.name)
+                ? "Customize your wings. Choose your portion size and optional fries."
+                : "Please select your fries option to continue."}
             </p>
             <img
               src={currentItem.image}
@@ -316,33 +319,60 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
               {currentItem.description}
             </p>
 
+            {chickenWingsItems.some(wing => wing.name === currentItem.name) && (
+              <>
+                <h3 className="text-lg font-semibold mb-2">
+                  Choose Your Portion:
+                </h3>
+                <div className="flex flex-col gap-2 mb-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="portionSize"
+                      value="6pcs"
+                      checked={portionSize === "6pcs"}
+                      onChange={(e) => setPortionSize(e.target.value)}
+                    />
+                    6 Pieces (Standard)
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="portionSize"
+                      value="10pcs"
+                      checked={portionSize === "10pcs"}
+                      onChange={(e) => setPortionSize(e.target.value)}
+                    />
+                    10 Pieces (+£3.00)
+                  </label>
+                </div>
+              </>
+            )}
+
             <h3 className="text-lg font-semibold mb-2">
-              Choose Your Fries:
+              {chickenWingsItems.some(wing => wing.name === currentItem.name)
+                ? "Add Fries? (Optional):"
+                : "Choose Your Fries:"}
             </h3>
-            <div className="flex flex-col gap-2 mb-4">
-              <label className="flex items-center gap-2">
-                <input
+            <div className="flex flex-col gap-2 mb-4">              <label className="flex items-center gap-2">                <input
                   type="radio"
                   name="fries"
                   value="Plain Fries"
                   checked={selectedFries === "Plain Fries"}
                   onChange={() => setSelectedFries("Plain Fries")}
                 />
-                Plain Fries (Included)
-              </label>
-              <label className="flex items-center gap-2">
+                Plain Fries (+£1.95)
+              </label><label className="flex items-center gap-2">
                 <input
                   type="radio"
                   name="fries"
-                  value="Fire Fries"
-                  checked={selectedFries === "Fire Fries"}
-                  onChange={() => setSelectedFries("Fire Fries")}
+                  value="Cajun Fries"
+                  checked={selectedFries === "Cajun Fries"}
+                  onChange={() => setSelectedFries("Cajun Fries")}
                 />
-                Fire Fries (+£2.00)
+                Cajun Fries (+£2.95)
               </label>
-            </div>
-
-            {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
+            </div>            {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
               currentItem.name
             ) && (
               <div className="mb-4">
@@ -354,15 +384,13 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
                   />
                   <span>Add Extra Patty (+£2.00)</span>
                 </label>
-              </div>
-            )}
+              </div>            )}
             <div className="flex justify-between items-center font-semibold text-lg mb-4">
               <span>Total:</span>
               <span>
-                £{(
-                  parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
+                £{(                  parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
                   (extraPatty ? 2.0 : 0) +
-                  (selectedFries === "Fire Fries" ? 2.0 : 0)
+                  (selectedFries === "Plain Fries" ? 1.95 : selectedFries === "Cajun Fries" ? 2.95 : 0)
                 ).toFixed(2)}
               </span>
             </div>
@@ -373,14 +401,15 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
               >
                 Cancel
               </button>
-              <button
-                className={`bg-primary text-primary-foreground px-4 py-2 rounded transition ${
-                  selectedFries
+              <button                className={`bg-primary text-primary-foreground px-4 py-2 rounded transition ${
+                  (chickenWingsItems.some(wing => wing.name === currentItem?.name) && !selectedFries)
                     ? "hover:bg-primary/90"
-                    : "opacity-50 cursor-not-allowed"
+                    : !selectedFries
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-primary/90"
                 }`}
                 onClick={handleConfirmAddToCart}
-                disabled={!selectedFries}
+                disabled={!chickenWingsItems.some(wing => wing.name === currentItem?.name) && !selectedFries}
               >
                 Add to Cart
               </button>
