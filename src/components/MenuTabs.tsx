@@ -293,6 +293,7 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
   const handleConfirmAddToCart = () => {
     if (currentItem) {
       const isWings = chickenWingsItems.some(wing => wing.name === currentItem.name);
+      const isLoadedChick = currentItem.name === "Loaded Chick";
       const extraPattyCost =
         extraPatty && ["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
           currentItem.name
@@ -304,11 +305,11 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
 
       const updatedItem = {
         ...currentItem,
-        name: `${currentItem.name}${
-          extraPatty ? " with Extra Patty" : ""
-        }${
-          isWings ? ` (${portionSize})` : ""
-        }${selectedFries ? ` with ${selectedFries}` : ""}`,
+        name: `${currentItem.name}` +
+          (isLoadedChick ? ` (${selectedLoadedChickFlavour})` : "") +
+          (extraPatty ? " with Extra Patty" : "") +
+          (isWings ? ` (${portionSize})` : "") +
+          (selectedFries ? ` with ${selectedFries}` : ""),
         price: `£${(
           parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
           extraPattyCost +
