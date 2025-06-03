@@ -385,26 +385,63 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
                   : "Choose Your Fries:"}
               </h3>
               <div className="flex flex-col gap-2 mb-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="fries"
-                    value="House Fries"
-                    checked={selectedFries === "House Fries"}
-                    onChange={() => setSelectedFries("House Fries")}
-                  />
-                  House Fries (Included)
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="fries"
-                    value="Cajun Fries"
-                    checked={selectedFries === "Cajun Fries"}
-                    onChange={() => setSelectedFries("Cajun Fries")}
-                  />
-                  Cajun Fries (+£0.50)
-                </label>
+                {chickenWingsItems.some(wing => wing.name === currentItem.name) ? (
+                  <>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="fries"
+                        value="House Fries"
+                        checked={selectedFries === "House Fries"}
+                        onChange={() => setSelectedFries("House Fries")}
+                      />
+                      House Fries (+£1.95)
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="fries"
+                        value="Cajun Fries"
+                        checked={selectedFries === "Cajun Fries"}
+                        onChange={() => setSelectedFries("Cajun Fries")}
+                      />
+                      Cajun Fries (+£2.95)
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="fries"
+                        value=""
+                        checked={selectedFries === ""}
+                        onChange={() => setSelectedFries("")}
+                      />
+                      No Fries
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="fries"
+                        value="House Fries"
+                        checked={selectedFries === "House Fries"}
+                        onChange={() => setSelectedFries("House Fries")}
+                      />
+                      House Fries (Included)
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="fries"
+                        value="Cajun Fries"
+                        checked={selectedFries === "Cajun Fries"}
+                        onChange={() => setSelectedFries("Cajun Fries")}
+                      />
+                      Cajun Fries (+£0.50)
+                    </label>
+                  </>
+                )}
               </div>
               {["Flam'in Smash", "FULL HOUSE", "The STACKED"].includes(
                 currentItem.name
@@ -426,10 +463,21 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
               <div className="flex justify-between items-center font-semibold text-lg mb-4">
                 <span>Total:</span>
                 <span>
-                  £{(                  parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
-                  (extraPatty ? 2.0 : 0) +
-                  (selectedFries === "Plain Fries" ? 1.95 : selectedFries === "Cajun Fries" ? 0.5 : 0)
-                ).toFixed(2)}
+                  £{(
+                    parseFloat(currentItem.price.replace(/[^0-9.-]+/g, "")) +
+                    (extraPatty ? 2.0 : 0) +
+                    (chickenWingsItems.some(wing => wing.name === currentItem.name)
+                      ? selectedFries === "House Fries"
+                        ? 1.95
+                        : selectedFries === "Cajun Fries"
+                        ? 2.95
+                        : 0
+                      : selectedFries === "Plain Fries"
+                      ? 1.95
+                      : selectedFries === "Cajun Fries"
+                      ? 0.5
+                      : 0)
+                  ).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-end gap-2">
