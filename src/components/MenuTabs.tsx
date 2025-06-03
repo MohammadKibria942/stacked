@@ -344,7 +344,7 @@ export function MenuTabs({ onAddToCart, onRemoveItemByName }: MenuTabsProps) {
   const handleConfirmAddToCart = () => {
     if (currentItem) {
       let finalName = currentItem.name;
-      let basePrice = parseFloat(currentItem.price.replace(/[^0-9.-]+/g, ""));
+      const basePrice = parseFloat(currentItem.price.replace(/[^0-9.-]+/g, ""));
       let additionalCost = 0;
 
       const isBurgerItem = burgerItems.some(b => b.name === currentItem.name);
