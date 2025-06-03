@@ -13,6 +13,7 @@ const tabs = [
   "Loaded Fries",
   "Fries",
   "Drinks",
+  "Sauces",
 ];
 
 const burgerItems = [
@@ -244,6 +245,51 @@ const drinksItems = [
       "Bright, bubbly, and packed with sunny orange flavour. A classic fizzy drink that's always a crowd-pleaser.",
     price: "£1.75",
     image: "ICE Orange.jpeg",
+    button: { text: "Add to Cart" },
+  },
+];
+
+const saucesItems = [
+  {
+    name: "Ketchup",
+    description: "Classic tomato ketchup.",
+    price: "£0.50",
+    image: "https://placehold.co/600x400.png",
+    button: { text: "Add to Cart" },
+  },
+  {
+    name: "Mayonnaise",
+    description: "Smooth and creamy mayo.",
+    price: "£0.50",
+    image: "https://placehold.co/600x400.png",
+    button: { text: "Add to Cart" },
+  },
+  {
+    name: "Garlic Sauce",
+    description: "Rich garlic sauce.",
+    price: "£0.50",
+    image: "https://placehold.co/600x400.png",
+    button: { text: "Add to Cart" },
+  },
+  {
+    name: "Chilli Sauce",
+    description: "Spicy chilli sauce.",
+    price: "£0.50",
+    image: "https://placehold.co/600x400.png",
+    button: { text: "Add to Cart" },
+  },
+  {
+    name: "Ranch",
+    description: "Classic ranch dip.",
+    price: "£0.50",
+    image: "https://placehold.co/600x400.png",
+    button: { text: "Add to Cart" },
+  },
+  {
+    name: "Stacked Sauce",
+    description: "Signature house sauce.",
+    price: "£0.50",
+    image: "https://placehold.co/600x400.png",
     button: { text: "Add to Cart" },
   },
 ];
@@ -591,6 +637,33 @@ export function MenuTabs({ onAddToCart }: MenuTabsProps) {
                 >
                   <Settings2 size={16} />
                   {item.button.text}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {activeTab === "Sauces" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl">
+          {saucesItems.map((item) => (
+            <div
+              key={item.name}
+              className="bg-white dark:bg-neutral-900 rounded-lg shadow p-4 flex flex-col items-center h-full"
+            >
+              <img
+                src={item.image}
+                alt={item.name}
+                className="rounded mb-4 object-cover w-full h-48"
+              />
+              <h3 className="text-xl font-semibold mb-2">{item.name}</h3>
+              <p className="text-base text-center mb-2">{item.description}</p>
+              <span className="font-bold text-lg mb-4">{item.price}</span>
+              <div className="mt-auto w-full flex justify-center">
+                <button
+                  className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition flex items-center gap-2 w-full justify-center"
+                  onClick={() => handleAddToCart(item)}
+                >
+                  Add to Cart
                 </button>
               </div>
             </div>
