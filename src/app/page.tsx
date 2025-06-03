@@ -23,7 +23,6 @@ function getTodayHours() {
 
 export default function Home() {
 	const today = getTodayHours();
-	const [activeTab, setActiveTab] = useState("Burgers"); // Initialize with the default tab name
 	const [cartItems, setCartItems] = useState<{ name: string; description: string; price: string; image: string; quantity: number }[]>([]);
 
 	const handleAddToCart = (item: { name: string; description: string; price: string; image: string }) => {
