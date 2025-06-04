@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { MenuTabs } from "@/components/MenuTabs";
+import { getStripe } from "@/lib/stripe";
 
 interface CartItem {
   name: string;
@@ -13,6 +14,18 @@ interface CartItem {
 
 export default function OrdersPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [paymentStatus, setPaymentStatus] = useState<'success' | 'canceled' | null>(null);
+  
+  // Check URL parameters for payment status
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success')) {
+      setPaymentStatus('success');
+      setCartItems([]); // Clear cart on successful payment
+    } else if (urlParams.get('canceled')) {
+      setPaymentStatus('canceled');
+    }
+  }, []);
 
   const handleAddToCart = (item: {
     name: string;
@@ -79,6 +92,16 @@ export default function OrdersPage() {
 
       {/* Cart Section - Right Side */}
       <div className="w-96 bg-white p-6 overflow-y-auto">
+        {paymentStatus === 'success' && (
+          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg">
+            Payment successful! Your order has been placed.
+          </div>
+        )}
+        {paymentStatus === 'canceled' && (
+          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
+            Payment canceled. Please try again.
+          </div>
+        )}
         <h2 className="text-2xl font-bold mb-4">Current Order</h2>
         {cartItems.length > 0 ? (
           <>
@@ -106,15 +129,33 @@ export default function OrdersPage() {
               <div className="flex justify-between items-center font-bold text-xl mb-6">
                 <span>Total:</span>
                 <span>£{calculateTotal()}</span>
-              </div>
-              <button 
+              </div>              <button 
                 className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition font-semibold text-lg"
-                onClick={() => {
-                  // Handle payment logic here
-                  setCartItems([]);
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/api/create-checkout-session', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ items: cartItems }),
+                    });
+
+                    const { sessionId } = await response.json();
+                    const stripe = await getStripe();
+                    
+                    if (stripe) {
+                      const { error } = await stripe.redirectToCheckout({ sessionId });
+                      if (error) {
+                        console.error('Error:', error);
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Error:', error);
+                  }
                 }}
               >
-                Complete Order
+                Proceed to Payment
               </button>
             </div>
           </>

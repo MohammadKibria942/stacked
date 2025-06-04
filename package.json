@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^3.7.0",
+    "@stripe/stripe-js": "^7.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.16.0",
@@ -17,6 +19,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.56.4",
+    "stripe": "^18.2.1",
     "tailwind-merge": "^3.3.0",
     "zod": "^3.25.42"
   },
@@ -26,6 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
+    "@types/stripe": "^8.0.416",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
