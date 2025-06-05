@@ -1,168 +1,115 @@
 "use client";
 
-import React, { useState } from "react";
-import { MenuTabs } from "@/components/MenuTabs";
-import { getStripe } from "@/lib/stripe";
+import React, { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
-interface CartItem {
+interface OrderItem {
   name: string;
-  description: string;
   price: string;
-  image: string;
   quantity: number;
 }
 
+interface Order {
+  id: string;
+  items: OrderItem[];
+  total: number;
+  status: "completed" | "pending";
+  timestamp: string;
+}
+
 export default function OrdersPage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [paymentStatus, setPaymentStatus] = useState<'success' | 'canceled' | null>(null);
-  
-  // Check URL parameters for payment status
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success')) {
-      setPaymentStatus('success');
-      setCartItems([]); // Clear cart on successful payment
-    } else if (urlParams.get('canceled')) {
-      setPaymentStatus('canceled');
-    }
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Load orders from localStorage on component mount
+    const loadOrders = () => {
+      const savedOrders = localStorage.getItem("stacked_orders");
+      if (savedOrders) {
+        setOrders(JSON.parse(savedOrders));
+      }
+      setLoading(false);
+    };
+
+    loadOrders();
+
+    // Set up event listener for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "stacked_orders") {
+        const newOrders = e.newValue ? JSON.parse(e.newValue) : [];
+        setOrders(newOrders);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const handleAddToCart = (item: {
-    name: string;
-    description: string;
-    price: string;
-    image: string;
-  }) => {
-    setCartItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex(
-        (cartItem) => cartItem.name === item.name
-      );
-      if (existingItemIndex > -1) {
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex] = {
-          ...updatedItems[existingItemIndex],
-          quantity: updatedItems[existingItemIndex].quantity + 1,
-        };
-        return updatedItems;
-      } else {
-        return [...prevItems, { ...item, quantity: 1 }];
-      }
-    });
-  };
-
-  const handleRemoveItemByName = (itemName: string) => {
-    setCartItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex(
-        (cartItem) => cartItem.name === itemName
-      );
-      if (existingItemIndex > -1) {
-        const updatedItems = [...prevItems];
-        if (updatedItems[existingItemIndex].quantity > 1) {
-          updatedItems[existingItemIndex] = {
-            ...updatedItems[existingItemIndex],
-            quantity: updatedItems[existingItemIndex].quantity - 1,
-          };
-        } else {
-          updatedItems.splice(existingItemIndex, 1);
-        }
-        return updatedItems;
-      }
-      return prevItems;
-    });
-  };
-
-  const calculateTotal = () => {
-    return cartItems
-      .reduce((total, item) => {
-        const price = parseFloat(item.price.replace(/[^0-9.-]+/g, ""));
-        return total + price * item.quantity;
-      }, 0)
-      .toFixed(2);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-white text-foreground">
-      {/* Menu Section - Left Side */}
-      <div className="flex-1 overflow-y-auto p-4 border-r">
-        <MenuTabs 
-          onAddToCart={handleAddToCart} 
-          onRemoveItemByName={handleRemoveItemByName}
-        />
-      </div>
+    <div className="min-h-screen bg-white p-8">
+      <h1 className="text-3xl font-bold mb-8">Recent Orders</h1>
 
-      {/* Cart Section - Right Side */}
-      <div className="w-96 bg-white p-6 overflow-y-auto">
-        {paymentStatus === 'success' && (
-          <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg">
-            Payment successful! Your order has been placed.
-          </div>
-        )}
-        {paymentStatus === 'canceled' && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
-            Payment canceled. Please try again.
-          </div>
-        )}
-        <h2 className="text-2xl font-bold mb-4">Current Order</h2>
-        {cartItems.length > 0 ? (
-          <>
-            <ul className="space-y-4 mb-6">
-              {cartItems.map((item, index) => (
-                <li key={index} className="flex justify-between items-center">
-                  <div>
-                    <span className="font-medium">
-                      {item.name} {item.quantity > 1 && `(x${item.quantity})`}
+      {orders.length === 0 ? (
+        <div className="text-center text-gray-500 py-8">
+          <p>No orders yet</p>
+        </div>
+      ) : (
+        <div className="grid gap-6">
+          {orders.map((order) => (
+            <div
+              key={order.id}
+              className="bg-white border rounded-lg shadow-sm p-6"
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="text-sm text-gray-500">Order ID: {order.id}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(order.timestamp).toLocaleString()}
+                  </p>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    order.status === "completed"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}
+                >
+                  {order.status}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {order.items.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <span>
+                      {item.quantity}x {item.name}
                     </span>
-                    <span className="block text-sm text-gray-500">
-                      £{item.price}
+                    <span className="text-gray-600">
+                      £
+                      {(parseFloat(item.price.replace(/[^0-9.-]+/g, "")) *
+                        item.quantity)
+                        .toFixed(2)}
                     </span>
                   </div>
-                  <button
-                    className="text-red-500 hover:text-red-600 text-sm"
-                    onClick={() => handleRemoveItemByName(item.name)}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center font-bold text-xl mb-6">
-                <span>Total:</span>
-                <span>£{calculateTotal()}</span>
-              </div>              <button 
-                className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition font-semibold text-lg"
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/create-checkout-session', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({ items: cartItems }),
-                    });
+                ))}
+              </div>
 
-                    const { sessionId } = await response.json();
-                    const stripe = await getStripe();
-                    
-                    if (stripe) {
-                      const { error } = await stripe.redirectToCheckout({ sessionId });
-                      if (error) {
-                        console.error('Error:', error);
-                      }
-                    }
-                  } catch (error) {
-                    console.error('Error:', error);
-                  }
-                }}
-              >
-                Proceed to Payment
-              </button>
+              <div className="mt-4 pt-4 border-t flex justify-between items-center font-semibold">
+                <span>Total</span>
+                <span>£{order.total.toFixed(2)}</span>
+              </div>
             </div>
-          </>
-        ) : (
-          <p className="text-gray-500">No items in the order.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

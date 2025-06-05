@@ -23,12 +23,39 @@ export default function CheckoutPage() {
     const storedCartItems = localStorage.getItem('cartItems');
     if (storedCartItems) {
       setCheckoutItems(JSON.parse(storedCartItems));
-    }
-
-    // Check URL parameters for payment status
+    }    // Check URL parameters for payment status
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success')) {
       setPaymentStatus('success');
+      
+      // Save the order to localStorage
+      const cartItems = localStorage.getItem('cartItems');
+      if (cartItems) {
+        const items = JSON.parse(cartItems);
+        const order = {
+          id: `ORD-${Date.now()}`,
+          items: items,
+          total: items.reduce((total: number, item: CartItem) => {
+            return total + (parseFloat(item.price.replace(/[^0-9.-]+/g, "")) * item.quantity);
+          }, 0),
+          status: 'completed',
+          timestamp: new Date().toISOString()
+        };
+
+        // Get existing orders
+        const existingOrders = localStorage.getItem('stacked_orders');
+        const orders = existingOrders ? JSON.parse(existingOrders) : [];
+        
+        // Add new order to the beginning of the array
+        orders.unshift(order);
+        
+        // Keep only the last 50 orders
+        const limitedOrders = orders.slice(0, 50);
+        
+        // Save back to localStorage
+        localStorage.setItem('stacked_orders', JSON.stringify(limitedOrders));
+      }
+      
       localStorage.removeItem('cartItems'); // Clear cart on successful payment
     } else if (urlParams.get('canceled')) {
       setPaymentStatus('canceled');
