@@ -15,6 +15,7 @@ interface Order {
   total: number;
   status: "completed" | "pending";
   timestamp: string;
+  paymentStatus: "paid";
 }
 
 export default function OrdersPage() {
@@ -45,6 +46,29 @@ export default function OrdersPage() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  const handleMarkAsCompleted = (orderId: string) => {
+    const updatedOrders = orders.map(order => {
+      if (order.id === orderId && order.status === 'pending') {
+        return { ...order, status: 'completed' as 'completed' | 'pending' };
+      }
+      return order;
+    });
+    setOrders(updatedOrders);
+    localStorage.setItem("stacked_orders", JSON.stringify(updatedOrders));
+    // Optionally, you could also update the timestamp here if needed:
+    // timestamp: new Date().toISOString()
+  };
+
+  const handleRemoveOrder = (orderId: string) => {
+    const updatedOrders = orders.filter(order => order.id !== orderId);
+    setOrders(updatedOrders);
+    localStorage.setItem("stacked_orders", JSON.stringify(updatedOrders));
+  };
+
+  if (!loading && orders.length === 0) {
+    // This check was moved up to avoid rendering the loading spinner unnecessarily
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -69,21 +93,41 @@ export default function OrdersPage() {
               className="bg-white border rounded-lg shadow-sm p-6"
             >
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500">Order ID: {order.id}</p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(order.timestamp).toLocaleString()}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-500">Order ID: {order.id}</p>
+                    {order.status === 'pending' && order.paymentStatus === 'paid' && (
+                      <button
+                        onClick={() => handleMarkAsCompleted(order.id)}
+                        className="text-xs text-green-600 hover:text-green-800 px-2 py-1 rounded hover:bg-green-100 transition-colors font-medium"
+                        aria-label={`Mark order ${order.id} as cooked`}
+                      >
+                        Mark as Cooked
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{new Date(order.timestamp).toLocaleString()}</p>
                 </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    order.status === "completed"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
-                >
-                  {order.status}
-                </span>
+                <div className="flex flex-col items-end ml-4">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      order.paymentStatus === "paid"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-800" // Fallback for unpaid, though current logic sets all to paid
+                    }`}
+                  >
+                    {order.paymentStatus === "paid" ? "Paid" : "Unpaid"}
+                  </span>
+                  <span
+                    className={`mt-1 px-3 py-1 rounded-full text-xs font-medium ${
+                      order.status === "completed"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {order.status}
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-2">

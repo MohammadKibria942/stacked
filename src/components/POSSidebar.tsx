@@ -15,7 +15,7 @@ export function POSSidebar() {
   return (
     <div className="w-56 bg-neutral-900 text-white min-h-screen p-4">
       <div className="mb-8">
-        <h1 className="text-xl font-bold px-4">storekit</h1>
+        <h1 className="text-xl font-bold px-4">STACKED</h1>
       </div>
       <nav>
         <ul className="space-y-2">

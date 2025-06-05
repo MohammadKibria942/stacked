@@ -38,8 +38,9 @@ export default function CheckoutPage() {
           total: items.reduce((total: number, item: CartItem) => {
             return total + (parseFloat(item.price.replace(/[^0-9.-]+/g, "")) * item.quantity);
           }, 0),
-          status: 'completed',
-          timestamp: new Date().toISOString()
+          status: 'pending', // New orders are pending cooking
+          paymentStatus: 'paid', // Mark order as paid
+          timestamp: new Date().toISOString(),
         };
 
         // Get existing orders
