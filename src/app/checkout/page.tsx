@@ -14,10 +14,20 @@ interface CartItem {
   quantity: number;
 }
 
+interface Order {
+  id: string;
+  items: CartItem[];
+  total: number;
+  status: 'pending' | 'completed';
+  paymentStatus: 'paid';
+  timestamp: string;
+}
+
 export default function CheckoutPage() {
   const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
   const [paymentStatus, setPaymentStatus] = useState<'success' | 'canceled' | null>(null);  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     const storedCartItems = localStorage.getItem('cartItems');
@@ -29,10 +39,10 @@ export default function CheckoutPage() {
       setPaymentStatus('success');
       
       // Save the order to localStorage
-      const cartItems = localStorage.getItem('cartItems');
-      if (cartItems) {
-        const items = JSON.parse(cartItems);
-        const order = {
+      const currentCartItems = localStorage.getItem('cartItems');
+      if (currentCartItems) {
+        const items: CartItem[] = JSON.parse(currentCartItems);
+        const newOrder: Order = {
           id: `ORD-${Date.now()}`,
           items: items,
           total: items.reduce((total: number, item: CartItem) => {
@@ -46,13 +56,14 @@ export default function CheckoutPage() {
         // Get existing orders
         const existingOrders = localStorage.getItem('stacked_orders');
         const orders = existingOrders ? JSON.parse(existingOrders) : [];
-        
+
         // Add new order to the beginning of the array
-        orders.unshift(order);
+        orders.unshift(newOrder);
         
         // Keep only the last 50 orders
         const limitedOrders = orders.slice(0, 50);
         
+        setConfirmedOrder(newOrder); // Set the confirmed order for display
         // Save back to localStorage
         localStorage.setItem('stacked_orders', JSON.stringify(limitedOrders));
       }
@@ -131,10 +142,27 @@ export default function CheckoutPage() {
           </div>
         )}
         {paymentStatus === 'success' && (
-          <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-lg">
-            <p className="font-medium">Payment successful! Thank you for your order.</p>
-            <Link href="/" className="text-green-600 hover:text-green-700 underline mt-2 inline-block">
-              Return to Menu
+          <div className="mb-6 p-6 bg-green-50 text-green-800 rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold mb-4 text-green-700">Payment Successful!</h2>
+            <p className="mb-4">Thank you for your order. Here are your order details:</p>
+            {confirmedOrder && (
+              <div className="bg-white p-4 rounded-md border border-green-200">
+                <p className="mb-2"><strong>Order ID:</strong> {confirmedOrder.id}</p>
+                <h3 className="text-lg font-semibold mb-2">Items:</h3>
+                <ul className="list-disc list-inside mb-3 space-y-1 text-sm">
+                  {confirmedOrder.items.map((item, index) => (
+                    <li key={index}>
+                      {item.quantity}x {item.name} - £{(parseFloat(item.price.replace(/[^0-9.-]+/g, "")) * item.quantity).toFixed(2)}
+                    </li>
+                  ))}
+                </ul>
+                <p className="font-bold text-lg border-t border-green-200 pt-3 mt-3">
+                  Total Paid: £{confirmedOrder.total.toFixed(2)}
+                </p>
+              </div>
+            )}
+            <Link href="/" className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition mt-6 inline-block">
+              Continue Shopping
             </Link>
           </div>
         )}
