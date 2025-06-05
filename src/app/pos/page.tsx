@@ -177,10 +177,8 @@ export default function POSPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm text-neutral-600">Total orders</h3>
-              <p className="text-2xl font-semibold mt-1">{stats.totalOrders}</p>{/* Display calculated total orders */}
-              <p className="text-sm text-neutral-600 mt-1">from 0</p>
+              <p className="text-2xl font-semibold mt-1">{stats.totalOrders}</p>
             </div>
-            <span className="text-green-500 bg-green-50 px-2 py-1 rounded text-sm">+-%</span>
           </div>
         </div>
 
@@ -188,10 +186,8 @@ export default function POSPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm text-neutral-600">Avg. order value</h3>
-              <p className="text-2xl font-semibold mt-1">£{stats.avgOrderValue}</p>{/* Display calculated average order value */}
-              <p className="text-sm text-neutral-600 mt-1">from £0.00</p>
+              <p className="text-2xl font-semibold mt-1">£{stats.avgOrderValue}</p>
             </div>
-            <span className="text-green-500 bg-green-50 px-2 py-1 rounded text-sm">+-%</span>
           </div>
         </div>
 
@@ -199,10 +195,8 @@ export default function POSPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-sm text-neutral-600">Gross revenue</h3>
-              <p className="text-2xl font-semibold mt-1">£{stats.grossRevenue}</p>{/* Display calculated gross revenue */}
-              <p className="text-sm text-neutral-600 mt-1">from £0.00</p>
+              <p className="text-2xl font-semibold mt-1">£{stats.grossRevenue}</p>
             </div>
-            <span className="text-green-500 bg-green-50 px-2 py-1 rounded text-sm">+-%</span>
           </div>
         </div>
       </div>

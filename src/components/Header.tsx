@@ -65,6 +65,14 @@ export function Header({ cartItems, setCartItems }: { cartItems: { name: string;
   return (
     <header className="w-full flex justify-between items-center py-6 px-8 bg-neutral-100 dark:bg-neutral-900 relative">
       <h1 className="text-4xl font-bold tracking-tight">STACKED</h1>
+      {/* Temporary button for navigation to login */}
+      <button
+        onClick={() => router.push('/login')}
+        className="px-4 py-2 text-sm rounded bg-neutral-200 text-neutral-800 hover:bg-neutral-300 transition-colors"
+      >
+        Temp (Login)
+      </button>
+
       <div className="relative">
         <ShoppingCart
           className="w-6 h-6 text-neutral-800 dark:text-neutral-200 cursor-pointer"
